@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartoon Style RNG Game</title>
+    <style>
+        @keyframes scrollText {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100%); }
+        }
+
+        body {
+            font-family: 'Comic Sans MS', sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: #ffffff;
+            border: 5px solid #000000;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 90%;
+        }
+        h1 {
+            color: #ff6347;
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        button {
+            font-size: 1.5em;
+            padding: 10px 20px;
+            background-color: #ff6347;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #ff4500;
+        }
+        .message {
+            margin-top: 30px;
+            font-size: 2em;
+            height: 2em;
+            overflow: hidden;
+            position: relative;
+            color: #333;
+        }
+        .message span {
+            display: block;
+            animation: none;
+        }
+        .best-roll {
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cartoon RNG Game</h1>
+        <button onclick="generateItem()">Generate</button>
+        <div class="message" id="message">
+            <span id="messageText"></span>
+        </div>
+        <div class="best-roll" id="bestRoll">
+            Best Roll: <span id="bestRollText"></span>
+        </div>
+        <audio id="rollingSound" src="bike-loop-103290.mp3"></audio>
+        <audio id="successSound" src="short-success-sound-glockenspiel-treasure-video-game-6346.mp3"></audio>
+    </div>
+    <script>
+        const rarities = [
+            { name: 'Common', weight: 500 },     // 1 in 2 chance (500 / 1000)
+            { name: 'Uncommon', weight: 200 },   // 1 in 5 chance (200 / 1000)
+            { name: 'Rare', weight: 100 },       // 1 in 10 chance (100 / 1000)
+            { name: 'Epic', weight: 50 },        // 1 in 20 chance (50 / 1000)
+            { name: 'Legendary', weight: 20 },   // 1 in 50 chance (20 / 1000)
+            { name: 'Mythical', weight: 10 },    // 1 in 100 chance (10 / 1000)
+            { name: 'Godly', weight: 5 },        // 1 in 200 chance (5 / 1000)
+            { name: 'Demonic', weight: 3 },      // 1 in 333.33 chance (3 / 1000)
+            { name: 'Divine', weight: 2 },       // 1 in 500 chance (2 / 1000)
+            { name: 'Unreal', weight: 1 }        // 1 in 1000 chance (1 / 1000)
+        ];
+
+        let bestRoll = { name: '', weight: Infinity };
+
+        function getRandomRarity() {
+            const totalWeight = rarities.reduce((sum, rarity) => sum + rarity.weight, 0);
+            let randomNum = Math.random() * totalWeight;
+            for (const rarity of rarities) {
+                if (randomNum < rarity.weight) {
+                    return rarity;
+                }
+                randomNum -= rarity.weight;
+            }
+        }
+
+        function generateItem() {
+            const message = document.getElementById('messageText');
+            const bestRollElement = document.getElementById('bestRollText');
+            const rollingSound = document.getElementById('rollingSound');
+            const successSound = document.getElementById('successSound');
+
+            rollingSound.currentTime = 0;
+            rollingSound.play().catch(error => console.error('Error playing rolling sound:', error));
+
+            const interval = setInterval(() => {
+                const randomRarity = getRandomRarity();
+                message.textContent = randomRarity.name;
+                message.style.color = getColorByRarity(randomRarity.name);
+            }, 100);
+
+            setTimeout(() => {
+                clearInterval(interval);
+                rollingSound.pause();
+                const finalRarity = getRandomRarity();
+                message.textContent = finalRarity.name;
+                message.style.color = getColorByRarity(finalRarity.name);
+                successSound.currentTime = 0;
+                successSound.play().catch(error => console.error('Error playing success sound:', error));
+
+                // Update best roll if it's the lowest weight
+                if (finalRarity.weight < bestRoll.weight) {
+                    bestRoll = { name: finalRarity.name, weight: finalRarity.weight };
+                    bestRollElement.textContent = `${bestRoll.name} (1 in ${Math.round(1000 / bestRoll.weight)})`;
+                }
+            }, 2000);
+        }
+
+        function getColorByRarity(rarityName) {
+            switch (rarityName) {
+                case 'Common':
+                    return 'yellow';
+                case 'Uncommon':
+                    return 'green';
+                case 'Rare':
+                    return 'orange';
+                case 'Epic':
+                    return 'blue';
+                case 'Legendary':
+                    return 'purple';
+                case 'Mythical':
+                    return 'gold';
+                case 'Godly':
+                    return 'red';
+                case 'Demonic':
+                    return 'darkred';
+                case 'Divine':
+                    return 'lightblue';
+                case 'Unreal':
+                    return 'pink';
+                default:
+                    return 'black';
+            }
+        }
+    </script>
+</body>
+</html>
