@@ -70,7 +70,9 @@
 <body>
     <div class="container">
         <h1>Cartoon RNG Game</h1>
-        <button onclick="generateItem()">Generate</button>
+        <button id="autoRollButton" onclick="toggleAutoRoll()">Auto Roll: Off</button>
+        <button onclick="generateAndAnimate()">Generate & Roll</button>
+        <button onclick="saveBestRoll()">Save Best Roll</button>
         <div class="message" id="message">
             <span id="messageText"></span>
         </div>
@@ -95,6 +97,16 @@
         ];
 
         let bestRoll = { name: '', weight: Infinity };
+        let autoRollInterval = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedBestRoll = localStorage.getItem('bestRoll');
+            if (savedBestRoll) {
+                bestRoll = JSON.parse(savedBestRoll);
+                const bestRollElement = document.getElementById('bestRollText');
+                bestRollElement.textContent = `${bestRoll.name} (1 in ${Math.round(1000 / bestRoll.weight)})`;
+            }
+        });
 
         function getRandomRarity() {
             const totalWeight = rarities.reduce((sum, rarity) => sum + rarity.weight, 0);
@@ -107,7 +119,7 @@
             }
         }
 
-        function generateItem() {
+        function generateAndAnimate() {
             const message = document.getElementById('messageText');
             const bestRollElement = document.getElementById('bestRollText');
             const rollingSound = document.getElementById('rollingSound');
@@ -135,8 +147,27 @@
                 if (finalRarity.weight < bestRoll.weight) {
                     bestRoll = { name: finalRarity.name, weight: finalRarity.weight };
                     bestRollElement.textContent = `${bestRoll.name} (1 in ${Math.round(1000 / bestRoll.weight)})`;
+                    localStorage.setItem('bestRoll', JSON.stringify(bestRoll));
                 }
             }, 2000);
+        }
+
+        function toggleAutoRoll() {
+            const autoRollButton = document.getElementById('autoRollButton');
+            if (autoRollInterval) {
+                clearInterval(autoRollInterval);
+                autoRollInterval = null;
+                autoRollButton.textContent = 'Auto Roll: Off';
+            } else {
+                autoRollInterval = setInterval(generateAndAnimate, 3000); // Adjust interval as needed
+                autoRollButton.textContent = 'Auto Roll: On';
+                generateAndAnimate(); // Start auto rolling immediately
+            }
+        }
+
+        function saveBestRoll() {
+            localStorage.setItem('bestRoll', JSON.stringify(bestRoll));
+            alert('Best roll saved!');
         }
 
         function getColorByRarity(rarityName) {
